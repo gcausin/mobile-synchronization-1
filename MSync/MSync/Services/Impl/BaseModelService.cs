@@ -9,7 +9,6 @@ using Xamarin.Forms;
 using MobileSyncModels.Services;
 using System.ComponentModel;
 using System.Linq.Expressions;
-using MobileSyncModels.Utils;
 using MobileSyncModels.Base;
 
 [assembly: Xamarin.Forms.Dependency(typeof(BaseModelService))]

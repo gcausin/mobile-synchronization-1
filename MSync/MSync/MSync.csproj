@@ -40,7 +40,6 @@
       <DependentUpon>GenericPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Generic\SimpleSyncViewModel.cs" />
-    <Compile Include="Utils\**" />
     <Compile Include="Base\**" />
     <Compile Include="Services\**" />
     <Compile Include="Properties\AssemblyInfo.cs" />
