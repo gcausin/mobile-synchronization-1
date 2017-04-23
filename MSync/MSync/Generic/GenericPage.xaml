@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:MobileSync.Example.Generic"
+             Title ="Synchronize"
+             x:Class="MobileSync.Example.GenericPage">
+
+  <ContentPage.BindingContext>
+    <local:SimpleSyncViewModel />
+  </ContentPage.BindingContext>
+
+  <ContentPage.Padding>
+    <OnPlatform x:TypeArguments="Thickness" iOS="20,40,20,0" Android="20,40,20,0" />
+  </ContentPage.Padding>
+
+  <ContentPage.Content>
+    <StackLayout VerticalOptions="FillAndExpand"
+                 HorizontalOptions="FillAndExpand"
+                 Orientation="Vertical"
+                 Spacing="15">
+
+      <ScrollView HeightRequest="300">
+        <Label Text="{Binding Result}" />
+      </ScrollView>
+      <Button Text="Reset" Command="{Binding Reset.Command}" />
+      <Label Text="User" />
+      <Entry Text="{Binding BaseModel.Username}" />
+      <Label Text="Password" />
+      <Entry Text="{Binding BaseModel.Password}" IsPassword="true" />
+      <Button Text="Synchronize"
+              Command="{Binding SynchronizationCommand.Command}"
+              BorderRadius="25" />
+
+    </StackLayout>
+  </ContentPage.Content>
+
+</ContentPage>

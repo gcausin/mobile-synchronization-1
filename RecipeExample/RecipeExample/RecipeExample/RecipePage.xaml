@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:MobileClient.RecipeExample"
+             Title ="Recipes"
+             x:Class="MobileSync.Example.RecipePage">
+
+    <ContentPage.BindingContext>
+        <local:RecipeViewModel />
+    </ContentPage.BindingContext>
+
+    <ContentPage.Padding>
+        <OnPlatform x:TypeArguments="Thickness" iOS="20,40,20,0" Android="20,40,20,0" />
+    </ContentPage.Padding>
+
+    <StackLayout >
+        <Label Text="Recipes"/>
+        <ListView ItemsSource="{Binding Recipes}" 
+                  SelectedItem="{Binding SelectedRecipe, Mode=TwoWay}"
+                  VerticalOptions="FillAndExpand">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <TextCell Text="{Binding DisplayRecipe}" 
+                              TextColor="Black"/>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <Entry Placeholder="Recipe Name"
+                   Text="{Binding RecipeName}"
+                   HorizontalOptions="FillAndExpand"/>
+        <StackLayout Orientation="Horizontal">
+            <Button Text="Insert" Command="{Binding CommandInsertRecipe}"/>
+            <Button Text="Update" Command="{Binding CommandUpdateRecipe}"/>
+            <Button Text="Delete" Command="{Binding CommandDeleteRecipe}"/>
+            <Button Text="Sync." Command="{Binding SynchronizationCommand.Command}"/>
+        </StackLayout>
+
+        <Label Text="Ingredients"/>
+        <ListView ItemsSource="{Binding SelectedRecipe.Ingredients}" 
+                  SelectedItem="{Binding SelectedIngredient}" 
+                  VerticalOptions="Fill">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <TextCell Text="{Binding DisplayIngredient}" 
+                              TextColor="Black"/>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <Label Text="{Binding Energy}"
+               VerticalOptions="End"/>
+        
+    </StackLayout>
+
+</ContentPage>

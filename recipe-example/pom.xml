@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+	<artifactId>recipe-example</artifactId>
+    <version>1.1.0</version>
+    <packaging>jar</packaging>
+	<name>Mobile Synchronization - Recipe Example</name>
+
+	<parent>
+		<groupId>msync.mobile-synchronization</groupId>
+		<artifactId>parent</artifactId>
+		<version>1.0</version>
+	</parent>
+
+	<properties>
+        
+	</properties>
+
+	<developers>
+		<developer>
+			<id>gcausin</id>
+			<name>Georg Causin</name>
+			<email>schorse@causin.de</email>
+		</developer>
+	</developers>
+
+	<dependencies>
+		
+        <dependency>
+            <groupId>msync.mobile-synchronization</groupId>
+            <artifactId>mobile-synchronization-generator</artifactId>
+			<version>1.1.0</version>
+        </dependency>
+
+	</dependencies>
+	
+    <build>
+      <plugins>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>1.5.0</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>java</goal>
+              </goals>
+              <phase>install</phase>
+            </execution>
+          </executions>
+          <configuration>
+            <includeProjectDependencies>false</includeProjectDependencies>
+            <includePluginDependencies>true</includePluginDependencies>
+            <executableDependency>
+              <groupId>msync.mobile-synchronization</groupId>
+              <artifactId>recipe-example</artifactId>
+            </executableDependency>
+            <mainClass>recipe.example.MobileSynchronizationGenerator</mainClass>
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>msync.mobile-synchronization</groupId>
+              <artifactId>recipe-example</artifactId>
+              <version>1.1.0</version>
+              <type>jar</type>
+            </dependency>
+          </dependencies>
+        </plugin>
+      </plugins>
+    </build>
+
+</project>

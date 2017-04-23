@@ -1,0 +1,12 @@
+.project
+.classpath
+.springBeans
+.settings/
+target/
+
+#IntelliJ Stuff
+.idea
+*.iml
+
+src/main/java/generated/*
+/temporary/

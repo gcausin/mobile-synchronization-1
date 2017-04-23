@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+	<artifactId>mobile-synchronization-server</artifactId>
+    <version>1.1.0</version>
+    <packaging>war</packaging>
+	<name>Backend for Mobile Synchronization with Spring Data REST</name>
+	<description>Spring Data REST holds mobile Information with Spring Data JPA</description>
+
+	<parent>
+		<groupId>msync.mobile-synchronization</groupId>
+		<artifactId>parent</artifactId>
+		<version>1.0</version>
+	</parent>
+
+	<properties>
+
+		<apt.version>1.1.3</apt.version>
+		<java.version>1.8</java.version>
+		<querydsl.version>4.1.3</querydsl.version>
+		<spring-data-releasetrain.version>Hopper-SR7</spring-data-releasetrain.version>
+		<spring-hateoas.version>0.21.0.RELEASE</spring-hateoas.version>
+		<jedis.version>2.9.0</jedis.version>
+		<cassandra-driver.version>3.0.3</cassandra-driver.version>
+        
+	</properties>
+
+	<profiles>
+		<profile>
+			<id>spring5</id>
+			<properties>
+				<spring.version>5.0.0.M1</spring.version>
+			</properties>
+		</profile>
+	</profiles>
+
+	<developers>
+		<developer>
+			<id>gcausin</id>
+			<name>Georg Causin</name>
+			<email>schorse@causin.de</email>
+		</developer>
+	</developers>
+
+	<dependencies>
+		
+		<!-- spring-data-examples -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- Test dependencies -->
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- spring-data-rest-examples -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-rest</artifactId>
+		</dependency>
+
+		<!-- spring-data-rest-security -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+
+		<!-- See https://stormpath.com/blog/tutorial-spring-boot-war-files -->
+		<dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        
+        <!-- Exclude the default Tomcat connection pool -->
+<!--         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tomcat</groupId>
+                    <artifactId>tomcat-jdbc</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+ -->
+        <!-- Common DBCP2 connection pool -->
+<!--         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-dbcp2</artifactId>
+            <version>2.1.1</version>
+        </dependency>
+ -->        
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-keyvalue</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-data</artifactId>
+		</dependency>
+
+		<dependency>
+		    <groupId>org.hibernate</groupId>
+		    <artifactId>hibernate-java8</artifactId>
+		    <version>5.0.0.Final</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.jayway.jsonpath</groupId>
+			<artifactId>json-path</artifactId>
+			<scope>test</scope>
+		</dependency>
+        
+	</dependencies>
+	
+    <build>
+      <finalName>${serviceName}</finalName>
+
+      <plugins>
+
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>properties-maven-plugin</artifactId>
+          <version>1.0.0</version>
+          <executions>
+            <execution>
+              <phase>initialize</phase>
+              <goals>
+                <goal>read-project-properties</goal>
+              </goals>
+              <configuration>
+                <files>
+                  <file>${basedir}/src/main/resources/generated.application.properties</file>
+                </files>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+
+        <plugin>
+         <groupId>org.springframework.boot</groupId>
+         <artifactId>spring-boot-maven-plugin</artifactId>
+        </plugin>
+      
+      </plugins>
+
+	</build>
+
+</project>

@@ -1,0 +1,161 @@
+copyInsertStatement:
+    select
+        'insert into "'||c2.table_schema||'"."'||c1.table_name||'"('||string_agg(c1.column_name, ', ')||') select '||string_agg(c1.column_name, ', ')||' from "'||c1.table_schema||'"."'||c1.table_name||'"'
+    from
+        information_schema.columns c1
+        join information_schema.columns c2
+            on c1.table_name = c2.table_name
+            and c1.column_name = c2.column_name
+    where
+        c1.table_name = '~entity~'
+    and
+        c1.table_schema = '~fromSchema~'
+    and
+        c2.table_schema = '~schema~'
+    group by
+        c1.table_name,
+        c1.table_schema,
+        c2.table_schema
+
+createTableTemplate:
+    create table "~schema~"."~entity~" (
+        pk
+            varchar(36)
+            constraint "~entity~ Pk" primary key
+            default uuid_generate_v4(),
+    ~modifiedDate~~referencingAttributes~~tableAttributes~~uniqueTableConstraint~)
+
+modifiedDate:
+        modifiedDate
+            timestamp
+            not null
+            default date_trunc('milliseconds', clock_timestamp() at time zone 'utc'),
+
+referencingAttribute:
+        ~referenceProperty~Fk
+            varchar(36)~isNullable~
+            constraint "~ReferenceProperty~ of ~entity~" references "~schema~"."~referencedEntity~",
+
+tableAttribute:
+        ~attributeName~
+            ~attributeType~~isNullable~,
+
+uniqueTableConstraint:
+        constraint "Unique ~entity~" unique(~uniqueTableConstraint~)
+
+userDependencyInsertStatementNoParent:
+    insert into "~schema~"."UserDependency"(tableName) values ('~entity~')
+
+userDependencyInsertStatementWithParent:
+    insert into "~schema~"."UserDependency"(tableName, userDependencyFk)
+    select '~entity~', pk from "~schema~"."UserDependency"
+    where tableName = '~parentEntity~'
+
+createFunctionIsOwner:
+    CREATE or replace FUNCTION "~schema~"."IsOwner"(pUser text, pTable text, pPk text) RETURNS boolean AS $$
+        DECLARE
+        
+            userPk text;
+            ownerName citext;
+    
+        BEGIN
+        
+            select
+                "DependentUserFk",
+                u.name
+            from
+                "~schema~"."DependentUserFk"(pTable, pPk)
+                left join "~schema~"."User" u
+                    on u.pk = "DependentUserFk"
+                    and u.name = pUser
+            into
+                userPk,
+                ownerName;
+            
+            if userPk is null then
+                return null;
+            else
+                return ownerName is not null;
+            end if;
+    
+        END;
+    $$ LANGUAGE plpgsql
+
+createFunctionDependentUserFk:
+    CREATE or replace FUNCTION "~schema~"."DependentUserFk"(pTable text, pPk text) RETURNS text AS $$
+        DECLARE
+        
+            dependencyQuery text;
+            userPk text;
+    
+        BEGIN
+        
+            select sql from "~schema~"."UserDependencyQuery" into dependencyQuery where tableName = pTable;
+            
+            EXECUTE dependencyQuery INTO userPk USING pPk;
+            
+            --RAISE NOTICE 'Select: %, %', dependencyQuery, userPk;
+            
+            return userPk;
+    
+        END;
+    $$ LANGUAGE plpgsql
+
+createQueryOfUserDependency:
+    insert into "~schema~"."UserDependencyQuery"(tableName, sql)
+    select
+    	'~entity~',
+    	string_agg(
+            case
+                when lag is null and lead is null then 'select $1'
+                when count = level then 'select ' || lag || '.userFk from '
+                when count - 1 = level then '"~schema~"."' || tableName || '" ' || tableName
+                else 'join "~schema~"."' || tableName || '" ' || tableName || ' on ' ||
+                        tableName || '.' || lead || 'Fk = ' || lead || '.pk'
+            end ||
+            case
+                when level = 1 and lead is not null then ' where ' || tableName || '.pk = $1'
+                else ''
+            end,
+        ' ') 
+    from
+        (
+            WITH RECURSIVE tree AS (
+               SELECT pk, userDependencyFk, case when tableName = 'User' then 'u' else tablename end, 1 AS level
+               FROM   "~schema~"."UserDependency"
+               WHERE  tableName = '~entity~'
+               UNION  ALL
+               SELECT t.pk, t.userDependencyFk, t.tableName, c.level + 1
+               FROM   tree      c
+               JOIN   "~schema~"."UserDependency" t ON t.pk = c.userDependencyFk)
+            SELECT
+                level,
+                tableName,
+                lead(tableName) over (ORDER BY level),
+                lag(tableName) over (ORDER BY level),
+                count(*) over (partition by 'x')
+            FROM
+                tree
+            ORDER
+                BY level desc
+        ) a
+
+createFunctionNotifyDeletedRecord:
+    CREATE or replace FUNCTION "~schema~"."NotifyDeletedRecord"() RETURNS trigger AS $$
+        BEGIN
+        
+            --RAISE NOTICE 'TRIGER called on %', TG_TABLE_NAME;
+           
+            insert into "~schema~"."DeletedRecord"(userFk, entityName, entityPk)
+            values( "~schema~"."DependentUserFk"(TG_TABLE_NAME, old.pk), TG_TABLE_NAME, old.pk);
+           
+            RETURN OLD;
+        END;
+    $$ LANGUAGE plpgsql
+
+createTriggerNotifyDeletedRecord:
+    CREATE TRIGGER "NotifyDeletedRecord"
+    BEFORE DELETE ON "~schema~"."~entity~"
+    FOR EACH ROW
+    EXECUTE PROCEDURE "~schema~"."NotifyDeletedRecord"()
+

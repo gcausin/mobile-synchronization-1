@@ -1,0 +1,9 @@
+.project
+.classpath
+.springBeans
+.settings/
+target/
+d*/
+
+RecipeExample/RecipeExample/RecipeExample.Droid/Resources/Resource.Designer.cs
+GenericClient/GenericClient/GenericClient.Droid/Resources/Resource.Designer.cs

@@ -1,0 +1,498 @@
+import:
+    import ~fullClassName~;
+
+classSingleRequest:
+    // Generated code. All changes you make here will be lost on next run of generator!
+    package generated.deserialize;
+    
+    import msync.SingleRequestGroup;
+    import msync.model.AbstractEntity;
+    ~imports~
+    ~classDefinitions~
+    public class SingleRequest {
+    
+        public SingleRequestGroup[][] getRequestGroups() {
+            return new SingleRequestGroup[][] {
+    ~requestGroupGetters~       };
+        };
+    ~members~}
+
+requestGroupGetter:
+                get~SimpleClassNames~(),
+
+classSingleRequestGroup:
+    class ~SimpleClassName~Request extends SingleRequestGroup {
+    
+        private ~SimpleClassName~[] values;
+        public ~SimpleClassName~[] getValues() {
+            return values;
+        }
+        public void setValues(~SimpleClassName~[] values) {
+            this.values = values;
+        }
+    
+        @Override
+        public AbstractEntity[] getΕntities() {
+            return values;
+        }
+    }
+    
+member:
+    
+        private ~SimpleClassName~Request[] ~simpleClassNames~;
+        public ~SimpleClassName~Request[] get~SimpleClassNames~() {
+            return ~simpleClassNames~;
+        }
+        public void set~SimpleClassNames~(~SimpleClassName~Request[] ~simpleClassNames~) {
+            this.~simpleClassNames~ = ~simpleClassNames~;
+        }
+
+classForeignKeySetter:
+    // Generated code. All changes you make here will be lost on next run of generator!
+    package generated.deserialize;
+    
+    import java.util.HashMap;
+    import java.util.Map;
+    import java.util.function.Consumer;
+    import java.util.function.BiConsumer;
+    
+    import org.springframework.beans.BeansException;
+    import org.springframework.beans.factory.BeanFactory;
+    import org.springframework.beans.factory.BeanFactoryAware;
+    import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+    import org.springframework.data.repository.CrudRepository;
+    
+    import msync.EntityRequestHandler;
+    import msync.model.AbstractEntity;
+    ~imports~    
+    ~importsOfRepositories~
+    public class ForeignKeySetter implements BeanFactoryAware {
+    
+        private Map<String, EntityRequestHandler> foreignKeySetters = new HashMap<>(); 
+    
+        @SuppressWarnings("serial")
+        public EntityRequestHandler getRequestHandler(String requestClass) {
+            if (foreignKeySetters.containsKey(requestClass)) {
+                return foreignKeySetters.get(requestClass);
+            }
+            
+            EntityRequestHandler requestHandler = null;
+            
+    ~foreignKeySetterOfClasses~            
+            if (requestHandler != null) {
+                foreignKeySetters.put(requestClass, requestHandler);
+            }
+    
+            return requestHandler;
+        }
+    
+        @SuppressWarnings({ "unchecked" })
+        private <R> R getByType(Class<? extends CrudRepository<? extends AbstractEntity, String>> classToSearch) {
+            try {
+                return (R) beanFactory.getBean(classToSearch);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+    
+        private AutowireCapableBeanFactory beanFactory;
+    
+        @Override
+        public void setBeanFactory(final BeanFactory beanFactory) throws BeansException {
+            this.beanFactory = (AutowireCapableBeanFactory) beanFactory;
+        }
+    }
+
+foreignKeySetterOfClass:
+            ~ifOrElseIf~ (requestClass.equals(~SimpleClassName~.class.getSimpleName())) {
+                requestHandler = new EntityRequestHandler() {{
+                    setForeignKeySetter(new HashMap<String, BiConsumer<? extends AbstractEntity, String>>() {{
+    ~foreignKeySetters~
+                    }}); 
+                    setSave(o -> ForeignKeySetter.this.<~SimpleClassName~Repository>getByType(~SimpleClassName~Repository.class).save((~SimpleClassName~)o)); 
+                    setDelete(pk -> ForeignKeySetter.this.<~SimpleClassName~Repository>getByType(~SimpleClassName~Repository.class).delete(pk)); 
+                }};
+            }
+
+foreignKeySetter:
+                        put("~foreignKey~Fk", (o, pk) -> ((~SimpleClassName~)o).set~ForeignKey~(ForeignKeySetter.this.<~ForeignKey~Repository>getByType(~ForeignKey~Repository.class).findOne(pk)));
+
+rootEntityBase:
+    {
+        "packageName":"msync.model.system",
+        "csharpNamespace":"Sync.Model.System",
+        "tableName":"User",
+        "uniqueConstraint":{
+            "properties":[
+                "name"
+            ]
+        },
+        "properties":[
+            {
+                "name":"name",
+                "type":"citext"
+            }
+        ]
+    }
+
+accountTable:
+    {
+        "tableName":"Account",
+        "properties":[
+            {
+                "name":"enabled",
+                "type":"boolean"
+            },
+            {
+                "name":"password",
+                "type":"text"
+            }
+        ],
+        "uniqueConstraint":{
+            "properties":[
+                "userFk"
+            ]
+        },
+        "referenceConstraints":[
+            {
+                "referencedEntity":"User"
+            }
+        ],
+        "modifiedDateOmitted":"true",
+        "exludedFromUserDependency":"true"
+    }
+
+roleTable:
+    {
+        "tableName":"Role",
+        "properties":[
+            {
+                "name":"name",
+                "type":"citext"
+            }
+        ],
+        "uniqueConstraint":{
+            "properties":[
+                "name"
+            ]
+        },
+        "modifiedDateOmitted":"true",
+        "exludedFromUserDependency":"true"
+    }
+
+userRoleTable:
+    {
+        "tableName":"UserRole",
+        "referenceConstraints":[
+            {
+                "referencedEntity":"User"
+            },
+            {
+                "referencedEntity":"Role"
+            }
+        ],
+        "uniqueConstraint":{
+            "properties":[
+                "userFk",
+                "roleFk"
+            ]
+        },
+        "modifiedDateOmitted":"true",
+        "exludedFromUserDependency":"true"
+    }
+
+userDependencyTable:
+    {
+        "tableName":"UserDependency",
+        "properties":[
+            {
+                "name":"tableName",
+                "type":"text"
+            }
+        ],
+        "referenceConstraints":[
+            {
+                "referencedEntity":"UserDependency",
+                "nullable":"true"
+            }
+        ],
+        "uniqueConstraint":{
+            "properties":[
+                "tableName"
+            ]
+        },
+        "modifiedDateOmitted":"true",
+        "exludedFromUserDependency":"true"
+    }
+
+userDependencyQueryTable:
+    {
+        "tableName":"UserDependencyQuery",
+        "properties":[
+            {
+                "name":"tableName",
+                "type":"text"
+            },
+            {
+                "name":"sql",
+                "type":"text"
+            }
+        ],
+        "uniqueConstraint":{
+            "properties":[
+                "tableName"
+            ]
+        },
+        "modifiedDateOmitted":"true",
+        "exludedFromUserDependency":"true"
+    }
+
+deletedRecordTable:
+    {
+        "tableName":"DeletedRecord",
+        "packageName":"msync.model.system",
+        "csharpNamespace":"Sync.Model.System",
+        "properties":[
+            {
+                "name":"entityName",
+                "type":"text"
+            },
+            {
+                "name":"entityPk",
+                "type":"varchar(36)"
+            }
+        ],
+        "referenceConstraints":[
+            {
+                "referencedEntity":"User"
+            }
+        ],
+        "uniqueConstraint":{
+            "properties":[
+                "entityName",
+                "entityPk"
+            ]
+        },
+        "exludedFromUserDependency":"true"
+    }
+
+entityTemplate:
+    // Generated code. All changes you make here will be lost on next run of generator!
+    package ~packageName~;
+    
+    import javax.persistence.CascadeType;
+    import javax.persistence.Column;
+    import javax.persistence.Entity;
+    import javax.persistence.JoinColumn;
+    import javax.persistence.ManyToOne;
+    import javax.persistence.Table;
+    import javax.persistence.Transient;
+    
+    import org.springframework.data.rest.core.annotation.RepositoryRestResource;
+    
+    import com.fasterxml.jackson.annotation.JsonIgnore;
+    import com.fasterxml.jackson.annotation.JsonInclude;
+    
+    import msync.model.AbstractEntity;
+    ~entityImports~
+    @SuppressWarnings("unused")
+    @Entity
+    @RepositoryRestResource
+    @Table(name="`~EntityName~`",
+           schema="`~schema~`")
+    public class ~EntityName~ extends AbstractEntity {
+    
+    ~references~~properties~~getUser~}
+
+reference:
+        @ManyToOne(cascade = CascadeType.ALL)
+        @JoinColumn(name = "~referenceProperty~Fk", nullable = ~nullable~)
+        private ~ReferencedEntity~ ~referenceProperty~;
+        
+        @JsonInclude
+        @Transient
+        private String ~referenceProperty~Fk;
+    
+        public String get~ReferenceProperty~Fk() {
+            return ~referenceProperty~ == null ? null : ~referenceProperty~.getPk();
+        }
+    
+        public ~ReferencedEntity~ get~ReferenceProperty~() {
+            return ~referenceProperty~;
+        }
+    
+        public void set~ReferenceProperty~(~ReferencedEntity~ ~referenceProperty~) {
+            this.~referenceProperty~ = ~referenceProperty~;
+        }
+    
+property:
+        @Column(nullable = ~nullable~)
+        private ~propertyType~ ~propertyName~;
+    
+        public ~propertyType~ get~PropertyName~() {
+            return ~propertyName~;
+        }
+    
+        public void set~PropertyName~(~propertyType~ ~propertyName~) {
+            this.~propertyName~ = ~propertyName~;
+        }
+        
+getUser:
+        @Override
+        @JsonIgnore
+        public User getUser() {
+            return ~getUser~;
+        }
+
+repositoryTemplate:
+    // Generated code. All changes you make here will be lost on next run of generator!
+    package ~packageName~;
+    
+    import java.time.LocalDateTime;
+    
+    import org.springframework.data.domain.Page;
+    import org.springframework.data.domain.Pageable;
+    import org.springframework.data.jpa.repository.Modifying;
+    import org.springframework.data.jpa.repository.Query;
+    import org.springframework.data.repository.PagingAndSortingRepository;
+    import org.springframework.data.repository.query.Param;
+    import org.springframework.format.annotation.DateTimeFormat;
+    import org.springframework.security.access.prepost.PreAuthorize;
+    import org.springframework.transaction.annotation.Transactional;
+    
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public interface ~EntityName~Repository extends PagingAndSortingRepository<~EntityName~, String> {
+    
+        @Query(
+    ~selectStatement~
+        @PreAuthorize("hasRole('ROLE_USER')")
+        Page<~EntityName~> findByModifiedDateGreaterThan(
+                            @Param("modifiedDate")
+                            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                                LocalDateTime lastSyncTime, Pageable pageable);
+    
+        @Override
+        @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_READ_ALL')")
+        Page<~EntityName~> findAll(Pageable pageable);
+        
+        @Override
+        @PreAuthorize("hasRole('ROLE_USER')")
+        public ~EntityName~ findOne(String id);
+        
+        @Override
+        @Modifying
+        @Transactional
+        @Query("delete from ~EntityName~ where pk = ?1")
+        @PreAuthorize("hasRole('ROLE_ADMIN') or " +
+                      "(hasRole('ROLE_USER') and @dmlCheckService.isDeleteOk(principal.username, '~EntityName~', #pk))")
+        void delete(@Param("pk") String pk);
+    
+        @Override
+        @PreAuthorize("hasRole('ROLE_ADMIN') or " +
+                      "(hasRole('ROLE_USER') and @dmlCheckService.isUpsertOk(principal.username, #entity))")
+        <E extends ~EntityName~> E save(@Param("entity") E entity);
+    }
+
+selectStatement:
+            "select ~entity~ " +
+            "from ~Entity~ ~entity~ " +
+    ~joinConditions~        "where ~entity~.modifiedDate > ?1 " +
+    ~checkUserCondition~        "order by ~entity~.modifiedDate")
+
+joinCondition:
+            "join ~entity~.~parent~ ~parentAlias~ " +
+
+checkUserConditionWithPublic:
+            "and u.name in (?#{principal.username}, 'Public') " +
+
+checkUserConditionPrivate:
+            "and u.name = ?#{principal.username} " +
+
+csharpEntityTemplate:
+    // Generated code. All changes you make here will be lost on next run of generator!
+    using Model.Base;
+    using Newtonsoft.Json;
+    using SQLite;
+    using SQLiteNetExtensions.Attributes;
+    using System;
+    using System.Collections.Generic;
+    
+    ~csharpUsings~
+    
+    namespace ~csharpNamespace~
+    {
+        public class ~csharpEntity~ : AbstractEntity
+        {
+    ~csharpReferences~~csharpProperties~~csharpOneToManys~    }
+    }
+
+csharpOneToMany:
+            [JsonIgnore, OneToMany(CascadeOperations = CascadeOperation.CascadeRead)]
+            public List<~referencingEntity~> ~referencingEntities~ { get; set; }
+        
+
+csharpReference:
+            [ForeignKey(typeof(~csharpReferencedEntity~)), MaxLength(36)~isNullable~]
+    ~csharpUniqueIndexAttribute~        public string ~csharpReferenceProperty~Fk { get; set; }
+    
+            [ManyToOne(CascadeOperations = CascadeOperation.CascadeRead), JsonIgnore]
+            public ~csharpReferencedEntity~ ~csharpReferenceProperty~ { get; set; }
+    
+csharpUniqueIndexAttribute:
+            [Indexed(Name = "Unique~csharpEntity~", Order = ~csharpIndexOrder~, Unique = true)]
+
+csharpProperty:
+            [JsonProperty~isNullable~]
+    ~csharpUniqueIndexAttribute~        public ~csharpPropertyType~ ~csharpPropertyName~ { get; set; }
+    
+
+csharpUsing:
+    using ~csharpNamespace~;
+
+partialSynchronizationService:
+    // Generated code. All changes you make here will be lost on next run of generator!
+    ~csharpUsings~
+    using System.Collections.Generic;
+    
+    namespace MobileSyncModels.Services
+    {
+        public partial class SynchronizationService
+        {
+            public List<EntitySync> Setup(SynchronizationParameters synchronizationParameters)
+            {
+                return new List<Services.EntitySync>
+                {
+    ~partialSynchronizationServiceEntries~
+                };
+            }
+        }
+    }
+
+partialSynchronizationServiceEntry:
+                    ForEntity<~entity~>(synchronizationParameters),
+
+csharpProperties:
+    // Generated code. All changes you make here will be lost on next run of generator!
+    namespace Generated.MobileSynchronization
+    {
+        public static class GeneratedConstants
+        {
+            public static readonly string ServerVersion = "~modelVersion~";
+            public static readonly string LocalServer = "http://~localServer~:~server.port~/";
+            public static readonly string WebServer = "https://~webServer~/~serviceName~/";
+            public static readonly string Server = ~server~;
+            public static readonly int DownloadPageSize = ~download.pageSize~;
+            public static readonly int UploadPageSize = ~upload.pageSize~;
+            public static readonly bool LogDebug = ~log.debug~;
+            public static readonly bool LogJson = ~log.json~;
+        }
+    }
+
+javaProperties:
+    schema=~schemaName~-~modelVersion~
+    serviceName=~serviceName~
+    spring.datasource.url=~url~
+    spring.datasource.username=~user~
+    spring.datasource.password=~password~
+    server.port=~server.port~
+    log.debug=~log.debug~

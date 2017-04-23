@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+	<groupId>msync.mobile-synchronization</groupId>
+	<artifactId>parent</artifactId>
+    <version>1.0</version>
+    <packaging>pom</packaging>
+	<name>Parent Project for Mobile Synchronization Server</name>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>1.4.2.RELEASE</version>
+	</parent>
+	
+    <properties>
+
+        <java.version>1.8</java.version>
+        
+    </properties>
+
+    <modules>
+        <module>mobile-synchronization-generator</module>
+        <module>recipe-example</module>
+        <module>mobile-synchronization-server</module>
+    </modules>
+
+	<developers>
+		<developer>
+			<id>gcausin</id>
+			<name>Georg Causin</name>
+			<email>msync@causin.de</email>
+		</developer>
+	</developers>
+
+	<dependencies>
+		
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>9.4-1206-jdbc42</version>
+        </dependency>
+        
+        <!-- Seehttp://lewandowski.io/2016/02/formatting-java-time-with-spring-boot-using-json/ for serializatioon of Local...Time -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+        
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        
+    </dependencies>
+	
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<compilerArgument>-parameters</compilerArgument>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
