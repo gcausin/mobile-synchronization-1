@@ -55,6 +55,7 @@ public class MobileSynchronizationGenerator {
 
         generateJavaProperties(rootEntity);
         generateCsharpProperties(rootEntity);
+        generateCsharpInterfaces();
         
         StringBuffer out = new StringBuffer();
         
@@ -119,7 +120,35 @@ public class MobileSynchronizationGenerator {
         }
     }
 
-    private void generateCsharpProperties(RootEntity rootEntity) throws UnknownHostException, IOException {
+    private void generateCsharpInterfaces() throws IOException {
+        final String interfaceDefinitions = Utils.readTextFileFromClasspath("base-interfaces.json");
+        final Interface[] interfaces = interfaceDefinitions == null ?
+        									new Interface[0] : 
+        									new ObjectMapper().readValue(interfaceDefinitions, Interface[].class);
+        String allInterfaces = "";
+        									
+		for (Interface baseInterface : interfaces) {
+			String properties = "";
+			
+	        for (Property property : baseInterface.getProperties()) {
+	            properties += readTemplate("csharpInterfaceProperty:")
+	                    .replace("~csharpPropertyType~", toCsharpType(property.getType()))
+	                    .replace("~csharpPropertyName~", Utils.firstLetterToUpperCase(property.getName()));
+	        }
+
+	        allInterfaces += 
+		                readTemplate("csharpInterfaceTemplate:")
+		                    .replace("~interface~", baseInterface.getInterfaceName())
+		                    .replace("~extendedInterfaces~", baseInterface.getExtendedInterfaces())
+		                    .replace("~csharpInterfaceProperties~", properties);
+		}
+		
+        writeToFile(getProperty("csharpModelRootPath") + "/Generated/Model/Base", "ModelInterfaces.cs",
+                readTemplate("csharpModelInterfaces:")
+                	.replace("~additionalInterfaces~", allInterfaces));
+	}
+    
+	private void generateCsharpProperties(RootEntity rootEntity) throws UnknownHostException, IOException {
     	String localServer = getProperty("localServer");
     	String webServer = getProperty("webServer");
     	
@@ -127,8 +156,7 @@ public class MobileSynchronizationGenerator {
                 readTemplate("csharpProperties:")
                     .replace("~serviceName~", coalesce(getProperty("serviceName"), rootEntity.getSchema()))
                     .replace("~modelVersion~", rootEntity.getModelVersion())
-                    .replace("~localServer~", localServer != null ? localServer :
-                              InetAddress.getLocalHost().getHostAddress())
+                    .replace("~localServer~", coalesce(localServer, InetAddress.getLocalHost().getHostAddress()))
                     .replace("~webServer~", webServer)
                     .replace("~server~", Utils.firstLetterToUpperCase(getProperty("buildFor") + "Server"))
                     .replace("~server.port~", coalesce(getProperty("server.port"), "8080"))
@@ -160,6 +188,7 @@ public class MobileSynchronizationGenerator {
         rootEntity.setProperties(rootEntityBase.getProperties());
         rootEntity.setPackageName(rootEntityBase.getPackageName());
         rootEntity.setCsharpNamespace(rootEntityBase.getCsharpNamespace());
+        rootEntity.setCsharpInterfaces(rootEntityBase.getCsharpInterfaces());
         rootEntity.setTableName(rootEntityBase.getTableName());
         rootEntity.setUniqueConstraint(rootEntityBase.getUniqueConstraint());
         
@@ -489,7 +518,8 @@ public class MobileSynchronizationGenerator {
 		                    .replace("~csharpReferences~", references)
 		                    .replace("~csharpProperties~", properties)
 		                    .replace("~csharpEntity~", entity.getTableName())
-		                    .replace("~csharpOneToManys~", csharpOneToManys));
+		                    .replace("~csharpOneToManys~", csharpOneToManys)
+        					.replace("~csharpAdditionalInterfaces~", entity.getCsharpInterfaces()));
 
         for (Entity child : entity.getDependentEntities()) {
             generateCsharpClasses(rootEntity, child);

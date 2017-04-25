@@ -2,6 +2,7 @@
 using MobileSyncModels.Base;
 using MobileSyncModels.Services;
 using Model.Base;
+using SQLite;
 using System;
 using Xamarin.Forms;
 
@@ -13,6 +14,7 @@ namespace MobileClient.RecipeExample.SimpleSync
         public IResetCommand Reset { get; set; }
         public IBaseModelService BaseModel { get; set; }
         public IServiceProviderService ServiceProvider { get; } = DependencyService.Get<IServiceProviderService>();
+        public SQLiteConnection Connection { get { return Get<IDatabaseConnection>().Connection;  } }
 
         protected BaseViewModel()
         {

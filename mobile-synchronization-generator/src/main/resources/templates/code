@@ -421,9 +421,34 @@ csharpEntityTemplate:
     
     namespace ~csharpNamespace~
     {
-        public class ~csharpEntity~ : AbstractEntity
+        public class ~csharpEntity~ : AbstractEntity~csharpAdditionalInterfaces~
         {
     ~csharpReferences~~csharpProperties~~csharpOneToManys~    }
+    }
+
+csharpInterfaceTemplate:
+    
+        public interface ~interface~ ~extendedInterfaces~
+        {
+    ~csharpInterfaceProperties~    }
+
+csharpInterfaceProperty:
+            ~csharpPropertyType~ ~csharpPropertyName~ { get; set; }
+
+csharpModelInterfaces:
+    // Generated code. All changes you make here will be lost on next run of generator!
+    using System;
+    
+    namespace Model.Base
+    {
+        public interface IUpsertable
+        {
+            string Pk { get; }
+            bool IsNew { get; set; }
+            bool IsPending { get; set; }
+            DateTime ModifiedDate { get; set; }
+        }
+    ~additionalInterfaces~
     }
 
 csharpOneToMany:

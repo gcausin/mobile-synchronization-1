@@ -28,6 +28,9 @@ class Entity {
 	// Must be unique, reserved: User, Role, UserRole, Account, DeletedRecord,
 	// LastEntitySyncTime, Synchronization
 	private String tableName;
+	// interface(s) for C# classes, full qualified (if more than one comma
+	// separated) - optional
+	private String csharpInterfaces;
 	// read only those records from repository that are owned by the user (not
 	// by public) - optional, default false
 	// see generated repositories:
@@ -153,6 +156,17 @@ class Entity {
 
 	public void setTableName(String tableName) {
 		this.tableName = tableName;
+	}
+
+	public String getCsharpInterfaces() {
+		if (csharpInterfaces == null || "".equals(csharpInterfaces)) {
+			return "";
+		}
+		return ", " + csharpInterfaces;
+	}
+
+	public void setCsharpInterfaces(String csharpInterfaces) {
+		this.csharpInterfaces = csharpInterfaces;
 	}
 
 	public List<Entity> getDependentEntities() {
@@ -416,5 +430,34 @@ class RootEntity extends Entity {
 
 	public void setModelVersion(String modelVersion) {
 		this.modelVersion = modelVersion;
+	}
+}
+
+class Interface {
+	private String interfaceName;
+	private String extendedInterfaces;
+	private List<Property> properties;
+	
+	public String getInterfaceName() {
+		return interfaceName;
+	}
+	public void setInterfaceName(String interfaceName) {
+		this.interfaceName = interfaceName;
+	}
+	public String getExtendedInterfaces() {
+		if (extendedInterfaces == null) {
+			return "";
+		}
+		
+		return ": " + extendedInterfaces;
+	}
+	public void setExtendedInterfaces(String extendedInterfaces) {
+		this.extendedInterfaces = extendedInterfaces;
+	}
+	public List<Property> getProperties() {
+		return properties;
+	}
+	public void setProperties(List<Property> properties) {
+		this.properties = properties;
 	}
 }

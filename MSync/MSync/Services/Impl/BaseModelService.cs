@@ -10,6 +10,7 @@ using MobileSyncModels.Services;
 using System.ComponentModel;
 using System.Linq.Expressions;
 using MobileSyncModels.Base;
+using SQLiteNetExtensions.Extensions;
 
 [assembly: Xamarin.Forms.Dependency(typeof(BaseModelService))]
 namespace MobileSyncModels.Services
@@ -107,8 +108,12 @@ namespace MobileSyncModels.Services
                 return null;
             }
 
-            return Get<IDatabaseConnection>().Connection.Query<User>("select * from [User] where Name like ?",
+            User user = Get<IDatabaseConnection>().Connection.Query<User>("select * from [User] where Name like ?",
                                                                      new object[] { username }).FirstOrDefault();
+
+            Get<IDatabaseConnection>().Connection.GetChildren(user, true);
+
+            return user;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
