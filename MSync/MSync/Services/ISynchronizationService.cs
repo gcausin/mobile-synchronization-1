@@ -19,6 +19,7 @@ namespace MobileSyncModels.Services
         public string Server { get; set; }
         public int Downloaded { get; set; }
         public Action<Exception> ExceptionHandler { get; set; }
+        public Action Refresh { get; set; }
         public int RecordsDeletedAtServer { get; set; }
         public List<EntitySync> EntitiesInSynchronization { get; set; }
         public int Uploaded { get; set; }

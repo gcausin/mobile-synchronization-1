@@ -253,73 +253,100 @@ namespace MobileSyncModels.Services
                     pageCount++;
                 } while (readNextPage);
 
-                if (typeof(T) == typeof(DeletedRecord) && allObjects.Count > 0)
+                // Fire and forget: Task.Factory.StartNew(() => serviceControl.Execute());
+
+                await Task.Factory.StartNew(() =>
                 {
-                    foreach (T obj in allObjects)
+                    Stopwatch refreshWatch = new Stopwatch();
+
+                    refreshWatch.Start();
+
+                    if (typeof(T) == typeof(DeletedRecord) && allObjects.Count > 0)
                     {
-                        synchronizationParameters.RecordsToDelete++;
+                        foreach (T obj in allObjects)
+                        {
+                            synchronizationParameters.RecordsToDelete++;
 
-                        DeletedRecord deletedRecord = obj as DeletedRecord;
+                            DeletedRecord deletedRecord = obj as DeletedRecord;
 
-                        int deletedRecords = DatabaseConnection
-                                                .Connection
-                                                .Execute("delete from [" + deletedRecord.EntityName + "] where [Pk] = ?",
-                                                    new[] { deletedRecord.EntityPk });
+                            int deletedRecords = DatabaseConnection
+                                                    .Connection
+                                                    .Execute("delete from [" + deletedRecord.EntityName + "] where [Pk] = ?",
+                                                        new[] { deletedRecord.EntityPk });
 
-                        synchronizationParameters.RecordsDeleted += deletedRecords;
+                            if (synchronizationParameters.Refresh != null && refreshWatch.Elapsed >= TimeSpan.FromSeconds(1))
+                            {
+                                synchronizationParameters.Refresh();
+                                refreshWatch.Restart();
+                            }
+
+                            synchronizationParameters.RecordsDeleted += deletedRecords;
+                        }
+
+                        if (allObjects.Count > 0)
+                        {
+                            lastSyncRecord.LastDownloadTime = allObjects.Last().ModifiedDate;
+                        }
+
+                        DatabaseConnection.Connection.Execute("delete from DeletedRecord where EntityPk in (" +
+                                            allObjects.Select(o => "'" + (o as DeletedRecord).EntityPk + "'").Aggregate((i, j) => i + "," + j) + ")");
+
+                        if (synchronizationParameters.Refresh != null && refreshWatch.Elapsed >= TimeSpan.FromSeconds(1))
+                        {
+                            synchronizationParameters.Refresh();
+                            refreshWatch.Restart();
+                        }
+#if DEBUG
+                        if (GeneratedConstants.LogDebug)
+                        {
+                            elapsed = watch.Elapsed;
+                            watch.Restart();
+                            Debug.WriteLine("Performing delete actions, count=" + allObjects.Count + " needed " + elapsed);
+                        }
+#endif
                     }
-
-                    if (allObjects.Count > 0)
+                    else
                     {
-                        lastSyncRecord.LastDownloadTime = allObjects.Last().ModifiedDate;
-                    }
+                        foreach (T obj in allObjects)
+                        {
+                            try
+                            {
+                                DatabaseConnection.Connection.Insert(obj);
+                            }
+                            catch (Exception)
+                            {
+                                DatabaseConnection.Connection.GetChildren(obj);
+                                obj.IsPending = false;
+                                DatabaseConnection.Connection.Update(obj);
+                            }
 
-                    DatabaseConnection.Connection.Execute("delete from DeletedRecord where EntityPk in (" +
-                                        allObjects.Select(o => "'" + (o as DeletedRecord).EntityPk + "'").Aggregate((i, j) => i + "," + j) + ")");
+                            synchronizationParameters.Downloaded++;
+
+                            if (synchronizationParameters.Refresh != null && refreshWatch.Elapsed >= TimeSpan.FromSeconds(1))
+                            {
+                                synchronizationParameters.Refresh();
+                                refreshWatch.Restart();
+                            }
+                        }
+
+                        if (allObjects.Count > 0)
+                        {
+                            lastSyncRecord.LastDownloadTime = allObjects.Last().ModifiedDate;
+                        }
 
 #if DEBUG
-                    if (GeneratedConstants.LogDebug)
-                    {
-                        elapsed = watch.Elapsed;
-                        watch.Restart();
-                        Debug.WriteLine("Performing delete actions, count=" + allObjects.Count + " needed " + elapsed);
-                    }
+                        if (GeneratedConstants.LogDebug)
+                        {
+                            elapsed = watch.Elapsed;
+                            watch.Restart();
+                            Debug.WriteLine("Insert/update actions, count=" + allObjects.Count + " needed " + elapsed);
+                        }
 #endif
-                    finishedNotification();
-
-                    return;
-                }
-
-                foreach (T obj in allObjects)
-                {
-                    try
-                    {
-                        DatabaseConnection.Connection.Insert(obj);
                     }
-                    catch (Exception)
-                    {
-                        DatabaseConnection.Connection.GetChildren(obj);
-                        obj.IsPending = false;
-                        DatabaseConnection.Connection.Update(obj);
-                    }
+                });
 
-                    synchronizationParameters.Downloaded++;
-                }
-
-                if (allObjects.Count > 0)
-                {
-                    lastSyncRecord.LastDownloadTime = allObjects.Last().ModifiedDate;
-                }
-
-#if DEBUG
-                if (GeneratedConstants.LogDebug)
-                {
-                    elapsed = watch.Elapsed;
-                    watch.Restart();
-                    Debug.WriteLine("Insert/update actions, count=" + allObjects.Count + " needed " + elapsed);
-                }
-#endif
                 finishedNotification();
+                UpdateLastSyncTime(synchronizationParameters, lastSyncRecord);
             }
             catch (Exception exception)
             {
@@ -327,7 +354,7 @@ namespace MobileSyncModels.Services
             }
             finally
             {
-                UpdateLastSyncTime(synchronizationParameters, lastSyncRecord);
+                synchronizationParameters.Refresh?.Invoke();
             }
         }
 
