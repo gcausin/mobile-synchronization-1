@@ -11,6 +11,8 @@ namespace MobileSyncModels.Services
     {
         public Command Command { get; set; }
 
+        public Func<SynchronizationParameters, SynchronizationParameters> ParameterEnhancer { get; set; } = p => p;
+
         public SynchronizationCommand()
         {
             Command = new Command(Do, Can);
@@ -30,7 +32,7 @@ namespace MobileSyncModels.Services
 
             SetSynchronizationInProgress(true);
 
-            Get<ISynchronizationService>().Synchronize(new SynchronizationParameters
+            Get<ISynchronizationService>().Synchronize(ParameterEnhancer(new SynchronizationParameters
             {
                 Username = Get<IBaseModelService>().Username,
                 Password = Get<IBaseModelService>().Password,
@@ -48,7 +50,7 @@ namespace MobileSyncModels.Services
                         "Problem" + Environment.NewLine + Environment.NewLine + exception.Message + Environment.NewLine,
                         "Ok");
                 },
-            });
+            }));
         }
 
         private bool SynchronizationInProgress { get; set; }

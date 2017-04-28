@@ -11,5 +11,6 @@ namespace MobileSyncModels.Services
     public interface ISynchronizationCommand
     {
         Command Command { get; }
+        Func<SynchronizationParameters, SynchronizationParameters> ParameterEnhancer { get; set; }
     }
 }
