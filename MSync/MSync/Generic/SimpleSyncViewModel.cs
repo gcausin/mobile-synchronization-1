@@ -11,11 +11,14 @@ namespace MobileSync.Example.Generic
         {
             Get<INotificationService>().Subscribe(NotificationEvent.Synchronized, () => RaisePropertyChanged(nameof(Result)));
             Get<INotificationService>().Subscribe(NotificationEvent.Reset, () => RaisePropertyChanged(nameof(Result)));
-            SynchronizationCommand.ParameterEnhancer = p =>
-            {
-                p.Refresh = () => RaisePropertyChanged(nameof(Result));
 
-                return p;
+            Func<SynchronizationParameters, string, SynchronizationParameters> parameterEnhancer = SynchronizationCommand.ParameterEnhancer;
+
+            SynchronizationCommand.ParameterEnhancer = (sp, p) =>
+            {
+                sp.Refresh = () => RaisePropertyChanged(nameof(Result));
+
+                return parameterEnhancer(sp, p);
             };
         }
 

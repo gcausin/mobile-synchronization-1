@@ -54,9 +54,6 @@ public class Utils {
                                                 .getResource(file).getInputStream(), "UTF-8")) {
             return srcStream.useDelimiter("\\A").next();
         }
-        catch (IOException e) {
-            return null;
-        }
     }
 
     public static String readTextFileFromFileSystem(String fileName) throws IOException {

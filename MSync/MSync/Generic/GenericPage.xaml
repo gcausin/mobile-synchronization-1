@@ -29,6 +29,7 @@
       <Entry Text="{Binding BaseModel.Password}" IsPassword="true" />
       <Button Text="Synchronize"
               Command="{Binding SynchronizationCommand.Command}"
+              CommandParameter="full"
               BorderRadius="25" />
 
     </StackLayout>

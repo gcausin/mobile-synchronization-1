@@ -350,6 +350,7 @@ namespace MobileSyncModels.Services
             }
             catch (Exception exception)
             {
+                Debug.WriteLine(exception.StackTrace);
                 ExceptionHandler(synchronizationParameters, exception);
             }
             finally

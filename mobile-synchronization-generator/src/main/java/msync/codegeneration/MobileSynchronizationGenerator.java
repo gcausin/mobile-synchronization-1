@@ -101,16 +101,16 @@ public class MobileSynchronizationGenerator {
             out.append(copyFromSchema(rootEntity, copyFromSchema, Stream.of(accountTable)));
             out.append(copyFromSchema(rootEntity, copyFromSchema, Stream.of(roleTable)));
             out.append(copyFromSchema(rootEntity, copyFromSchema, Stream.of(userRoleTable)));
-        } else {
-            try {
-                out.append(
-                        executeStatement(
-                                Utils.readTextFileFromClasspath("initial-content.sql")
-                                            .replace("~schema~", rootEntity.getSchema())));
-            }
-            catch (IOException ioException){
-                // no file initial-content.sql exists on classpath
-            }
+        }
+
+        try {
+            out.append(
+                    executeStatement(
+                            Utils.readTextFileFromClasspath("initial-content.sql")
+                                        .replace("~schema~", rootEntity.getSchema())));
+        }
+        catch (IOException ioException){
+            // no file initial-content.sql exists on classpath
         }
         
         String createTablePath = getProperty("createTablePath");

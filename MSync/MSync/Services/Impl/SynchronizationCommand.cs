@@ -1,7 +1,9 @@
 ﻿using Generated.MobileSynchronization;
+using Generated.Sync.Model.System;
 using MobileSyncModels.Base;
 using MobileSyncModels.Services;
 using System;
+using System.Collections.Generic;
 using Xamarin.Forms;
 
 [assembly: Xamarin.Forms.Dependency(typeof(SynchronizationCommand))]
@@ -9,26 +11,27 @@ namespace MobileSyncModels.Services
 {
     public class SynchronizationCommand : ServiceProvider, ISynchronizationCommand
     {
-        public Command Command { get; set; }
+        public Command<string> Command { get; set; }
 
-        public Func<SynchronizationParameters, SynchronizationParameters> ParameterEnhancer { get; set; } = p => p;
+        public Func<SynchronizationParameters, string, SynchronizationParameters> ParameterEnhancer { get; set; } = (sp, p) => sp;
 
         public SynchronizationCommand()
         {
-            Command = new Command(Do, Can);
+            Command = new Command<string>(Do, Can);
             Get<INotificationService>().Subscribe(NotificationEvent.CredentialsChanged, () => Command.ChangeCanExecute());
         }
 
-        private bool Can()
+        private bool Can(string parameter)
         {
             return !SynchronizationInProgress &&
                    !string.IsNullOrWhiteSpace(Get<IBaseModelService>().Username) &&
                    !string.IsNullOrWhiteSpace(Get<IBaseModelService>().Password);
         }
 
-        private void Do()
+        private void Do(string parameter)
         {
             Get<IDatabaseConnection>().Connection.Update(Get<IBaseModelService>().Synchronization);
+            List<User> users = Get<IDatabaseConnection>().Connection.Query<User>("select * from User");
 
             SetSynchronizationInProgress(true);
 
@@ -40,6 +43,12 @@ namespace MobileSyncModels.Services
                 FinalAction = () =>
                 {
                     SetSynchronizationInProgress(false);
+
+                    if (users.Count == 0 && Get<IDatabaseConnection>().Connection.Query<User>("select * from User").Count > 0)
+                    {
+                        Get<INotificationService>().Send(NotificationEvent.InitiallySynchronized);
+                    }
+
                     Application.Current.MainPage.DisplayAlert("Synchronization", "Success", "Ok");
                 },
                 ExceptionHandler = exception =>
@@ -50,7 +59,7 @@ namespace MobileSyncModels.Services
                         "Problem" + Environment.NewLine + Environment.NewLine + exception.Message + Environment.NewLine,
                         "Ok");
                 },
-            }));
+            }, parameter));
         }
 
         private bool SynchronizationInProgress { get; set; }

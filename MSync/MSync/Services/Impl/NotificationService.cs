@@ -11,14 +11,14 @@ namespace MobileSyncModels.Services
 {
     public class NotificationService : INotificationService
     {
-        public void Send(NotificationEvent notificationEvent)
+        public void Send(string notificationEvent)
         {
-            MessagingCenter.Send(this, notificationEvent.ToString());
+            MessagingCenter.Send(this, notificationEvent);
         }
 
-        public void Subscribe(NotificationEvent notificationEvent, Action call)
+        public void Subscribe(string notificationEvent, Action call)
         {
-            MessagingCenter.Subscribe<NotificationService>(call, notificationEvent.ToString(), p => call());
+            MessagingCenter.Subscribe<NotificationService>(call, notificationEvent, p => call());
         }
     }
 }

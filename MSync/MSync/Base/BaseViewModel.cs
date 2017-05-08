@@ -3,6 +3,7 @@ using MobileSyncModels.Base;
 using MobileSyncModels.Services;
 using Model.Base;
 using SQLite;
+using SQLiteNetExtensions.Extensions;
 using System;
 using Xamarin.Forms;
 
@@ -55,6 +56,13 @@ namespace MobileClient.RecipeExample.SimpleSync
         public T Get<T>() where T : class
         {
             return ServiceProvider.Get<T>();
+        }
+
+        protected T GetChildren<T>(T obj, bool recursive = false)
+        {
+            Connection.GetChildren(obj, recursive);
+
+            return obj;
         }
     }
 }
