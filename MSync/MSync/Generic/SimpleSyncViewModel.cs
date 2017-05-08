@@ -1,6 +1,7 @@
 ﻿using MobileClient.RecipeExample.SimpleSync;
 using MobileSyncModels.Services;
 using System;
+using System.Diagnostics;
 using System.Linq;
 
 namespace MobileSync.Example.Generic
@@ -12,13 +13,14 @@ namespace MobileSync.Example.Generic
             Get<INotificationService>().Subscribe(NotificationEvent.Synchronized, () => RaisePropertyChanged(nameof(Result)));
             Get<INotificationService>().Subscribe(NotificationEvent.Reset, () => RaisePropertyChanged(nameof(Result)));
 
-            Func<SynchronizationParameters, string, SynchronizationParameters> parameterEnhancer = SynchronizationCommand.ParameterEnhancer;
-
             SynchronizationCommand.ParameterEnhancer = (sp, p) =>
             {
-                sp.Refresh = () => RaisePropertyChanged(nameof(Result));
+                sp.Refresh = () =>
+                {
+                    RaisePropertyChanged(nameof(Result));
+                };
 
-                return parameterEnhancer(sp, p);
+                return sp;
             };
         }
 
