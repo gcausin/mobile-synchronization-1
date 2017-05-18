@@ -4,6 +4,7 @@ using MobileSyncModels.Base;
 using MobileSyncModels.Services;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Xamarin.Forms;
 
 [assembly: Xamarin.Forms.Dependency(typeof(SynchronizationCommand))]
@@ -62,9 +63,23 @@ namespace MobileSyncModels.Services
             }, parameter));
         }
 
+        private Stopwatch watch;
         private bool SynchronizationInProgress { get; set; }
         private void SetSynchronizationInProgress(bool inProgress)
         {
+            if (GeneratedConstants.LogDebug)
+            {
+                if (inProgress)
+                {
+                    watch = new Stopwatch();
+                    watch.Start();
+                }
+                else
+                {
+                    Debug.WriteLine("Total synchronization needed " + watch.Elapsed);
+                }
+            }
+
             SynchronizationInProgress = inProgress;
             Command.ChangeCanExecute();
         }

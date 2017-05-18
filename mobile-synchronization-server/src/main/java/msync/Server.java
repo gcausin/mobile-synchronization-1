@@ -1,5 +1,7 @@
 package msync;
 
+import javax.servlet.Filter;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -19,6 +21,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.data.repository.query.SecurityEvaluationContextExtension;
+
+import com.github.ziplet.filter.compression.CompressingFilter;
 
 import generated.deserialize.ForeignKeySetter;
 
@@ -74,5 +78,12 @@ public class Server extends SpringBootServletInitializer {
 	@Bean
 	EvaluationContextExtension securityExtension() {
 		return new SecurityEvaluationContextExtension();
+	}
+	
+	@Bean
+	public Filter compressingFilter() {
+		CompressingFilter compressingFilter = new CompressingFilter();
+		
+	    return compressingFilter;
 	}
 }

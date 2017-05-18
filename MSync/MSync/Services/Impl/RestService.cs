@@ -22,8 +22,6 @@ namespace MobileSyncModels.Services
 
         HttpClient client;
 
-        public List<T> Items { get; private set; }
-
         public RestService(SynchronizationParameters synchronizationParameters)
         {
             Server = synchronizationParameters.Server;
@@ -35,9 +33,17 @@ namespace MobileSyncModels.Services
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authHeaderValue);
         }
 
-        public async Task<List<T>> DownloadAsync(DateTime lastSyncTime, int pageCount, int pageSize)
+        class Page
         {
-            Items = new List<T>();
+            public int Size { get; set; }
+            public int TotalElements { get; set; }
+            public int TotalPages { get; set; }
+            public int Number { get; set; }
+        }
+
+        public async Task<DownloadResult<T>> DownloadAsync(DateTime lastSyncTime, int pageCount, int pageSize)
+        {
+            DownloadResult<T> downloadResult = new DownloadResult<T>();
             string listProperty = ListProperty();
             string timeAsString = lastSyncTime.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
             string requestString = Server +
@@ -57,7 +63,9 @@ namespace MobileSyncModels.Services
                     Debug.WriteLine(requestString + Environment.NewLine + JsonPrettify(content));
                 }
 
-                Items = JObject.Parse(content)["_embedded"][listProperty].Select(token =>
+                JObject contentObject = JObject.Parse(content);
+
+                downloadResult.Items = contentObject["_embedded"][listProperty].Select(token =>
                 {
                     T o = token.ToObject<T>();
 
@@ -65,13 +73,19 @@ namespace MobileSyncModels.Services
 
                     return o;
                 }).ToList();
+
+                int totalPages = int.Parse((string)contentObject["page"]["totalPages"]);
+                int number = int.Parse((string)contentObject["page"]["number"]);
+
+                downloadResult.FetchNextPage = totalPages > 0 && totalPages - 1 != number;
+
             }
             else
             {
                 throw new Exception(response.StatusCode.ToString());
             }
 
-            return Items;
+            return downloadResult;
         }
 
         private string JsonPrettify(string json)

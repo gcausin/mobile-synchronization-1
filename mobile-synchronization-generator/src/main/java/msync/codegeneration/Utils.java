@@ -2,6 +2,7 @@ package msync.codegeneration;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -53,6 +54,9 @@ public class Utils {
                                         new DefaultResourceLoader(Utils.class.getClassLoader())
                                                 .getResource(file).getInputStream(), "UTF-8")) {
             return srcStream.useDelimiter("\\A").next();
+        }
+        catch(FileNotFoundException fileNotFoundException) {
+        	return null;
         }
     }
 
