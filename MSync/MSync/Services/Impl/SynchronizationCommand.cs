@@ -2,6 +2,7 @@
 using Generated.Sync.Model.System;
 using MobileSyncModels.Base;
 using MobileSyncModels.Services;
+using MSync.Services;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -31,7 +32,7 @@ namespace MobileSyncModels.Services
 
         private void Do(string parameter)
         {
-            Get<IDatabaseConnection>().Connection.Update(Get<IBaseModelService>().Synchronization);
+            Get<IBaseModelService>().SaveCredentials();
             List<User> users = Get<IDatabaseConnection>().Connection.Query<User>("select * from User");
 
             SetSynchronizationInProgress(true);

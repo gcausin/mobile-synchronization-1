@@ -16,5 +16,7 @@ namespace MobileSyncModels.Services
         string Username { get; set; }
         string Password { get; set; }
         bool IsOwnedByPublic(string userFk);
+        void SaveCredentials();
+
     }
 }

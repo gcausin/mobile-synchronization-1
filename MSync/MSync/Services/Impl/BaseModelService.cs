@@ -11,6 +11,7 @@ using System.ComponentModel;
 using System.Linq.Expressions;
 using MobileSyncModels.Base;
 using SQLiteNetExtensions.Extensions;
+using MSync.Services;
 
 [assembly: Xamarin.Forms.Dependency(typeof(BaseModelService))]
 namespace MobileSyncModels.Services
@@ -33,6 +34,9 @@ namespace MobileSyncModels.Services
 
                         Get<IDatabaseConnection>().Connection.Insert(synchronization);
                     }
+
+                    synchronization.Username = Get<ICredentialsService>().UserName;
+                    synchronization.Password = Get<ICredentialsService>().Password;
                 }
 
                 return synchronization;
@@ -64,7 +68,10 @@ namespace MobileSyncModels.Services
 
         public string Username
         {
-            get { return Synchronization.Username; }
+            get
+            {
+                return Synchronization.Username;
+            }
             set
             {
                 Synchronization.Username = value;
@@ -75,13 +82,26 @@ namespace MobileSyncModels.Services
 
         public string Password
         {
-            get { return Synchronization.Password; }
+            get
+            {
+                return Synchronization.Password;
+            }
             set
             {
                 Synchronization.Password = value;
                 RaisePropertyChanged(nameof(Password));
                 Get<INotificationService>().Send(NotificationEvent.CredentialsChanged);
             }
+        }
+
+        public void SaveCredentials()
+        {
+            if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Password))
+            {
+                return;
+            }
+
+            Get<ICredentialsService>().SaveCredentials(Username, Password);
         }
 
         public bool IsOwnedByPublic(string userFk)
@@ -111,7 +131,10 @@ namespace MobileSyncModels.Services
             User user = Get<IDatabaseConnection>().Connection.Query<User>("select * from [User] where Name like ?",
                                                                      new object[] { username }).FirstOrDefault();
 
-            Get<IDatabaseConnection>().Connection.GetChildren(user, true);
+            if (user != null)
+            {
+                Get<IDatabaseConnection>().Connection.GetChildren(user, true);
+            }
 
             return user;
         }

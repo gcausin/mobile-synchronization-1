@@ -15,6 +15,7 @@ using Newtonsoft.Json;
 using SQLite;
 using Xamarin.Forms;
 using Generated.MobileSynchronization;
+using MSync.Services;
 
 [assembly: Xamarin.Forms.Dependency(typeof(SynchronizationService))]
 namespace MobileSyncModels.Services
@@ -43,6 +44,12 @@ namespace MobileSyncModels.Services
         public IDatabaseConnection DatabaseConnection
         {
             get { return databaseConnection ?? (databaseConnection = DependencyService.Get<IDatabaseConnection>()); }
+        }
+
+        private ICredentialsService credentialsService;
+        public ICredentialsService CredentialsService
+        {
+            get { return credentialsService ?? (credentialsService = DependencyService.Get<ICredentialsService>()); }
         }
 
         public EntitySync ForEntity<T>(SynchronizationParameters synchronizationParameters) where T : AbstractEntity, new()
@@ -602,6 +609,7 @@ namespace MobileSyncModels.Services
         {
             DropTables();
             CreateTables();
+            CredentialsService.DeleteCredentials();
             NotificationService.Send(NotificationEvent.Reset);
         }
     }
