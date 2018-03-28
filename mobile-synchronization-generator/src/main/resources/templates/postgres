@@ -52,9 +52,14 @@ modifiedDate:
             default date_trunc('milliseconds', clock_timestamp() at time zone 'utc'),
 
 referencingAttribute:
-        ~referenceProperty~Fk
-            varchar(36)~isNullable~
-            constraint "~ReferenceProperty~ of ~entity~" references "~schema~"."~referencedEntity~",
+        ~referencingProperty~        varchar(36)~isNullable~
+            constraint ~referenceConstraintName~                   references "~schema~"."~referencedEntity~",
+
+referencingProperty:
+    ~referenceProperty~Fk
+
+referenceConstraintName:
+    "~ReferenceProperty~ of ~entity~"
 
 tableAttribute:
         ~attributeName~
@@ -67,7 +72,7 @@ userDependencyInsertStatementNoParent:
     insert into "~schema~"."UserDependency"(tableName) values ('~entity~')
 
 userDependencyInsertStatementWithParent:
-    insert into "~schema~"."UserDependency"(tableName, userDependencyFk)
+    insert into "~schema~"."UserDependency"(tableName, priorUserDependencyFk)
     select '~entity~', pk from "~schema~"."UserDependency"
     where tableName = '~parentEntity~'
 
@@ -143,7 +148,7 @@ createQueryOfUserDependency:
             with recursive tree as (
                 select
                     pk,
-                    userDependencyFk,
+                    priorUserDependencyFk,
                     case when tableName = 'User' then 'u' else tablename end,
                     1 AS level
                 from
@@ -153,7 +158,7 @@ createQueryOfUserDependency:
                 union all
                 select
                     t.pk,
-                    t.userDependencyFk,
+                    t.priorUserDependencyFk,
                     t.tableName,
                     c.level + 1
                 from
@@ -161,7 +166,7 @@ createQueryOfUserDependency:
                 join
                     "~schema~"."UserDependency" t
                 on
-                    t.pk = c.userDependencyFk
+                    t.pk = c.priorUserDependencyFk
             )
             select
                 level,

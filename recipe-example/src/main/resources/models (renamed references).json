@@ -4,6 +4,7 @@
     "dependentEntities":[
         {
             "tableName":"Food",
+            "referencePropertyName":"myUser",
             "referenceConstraintName":"my User of Food",
             "packageName":"model.food",
             "csharpNamespace":"Model.Foods",
@@ -19,14 +20,14 @@
             ],
             "uniqueConstraint":{
                 "properties":[
-                    "userFk",
+                    "myUserFk",
                     "name"
                 ]
             },
             "referenceConstraints":[
                 {
                     "referencedEntity":"Food",
-		            "referencePropertyName":"parent",
+		            "referencePropertyName":"myFood",
 		            "referenceConstraintName":"Food's Parent",
                     "nullable":"true"
                 }

@@ -56,6 +56,8 @@ class Entity {
 	private Entity parent;
 	private boolean exludedFromUserDependency;
 	private boolean modifiedDateOmitted;
+	// Enable configuring a name for reference constraint 
+	private String referenceConstraintName;
 
 	public Entity findEntity(String referencedEntity) {
 
@@ -229,18 +231,17 @@ class Entity {
 	public List<ReferenceConstraint> getAllReferences() {
 		List<ReferenceConstraint> referencedEntities = new ArrayList<>();
 
-		if (getParent() != null && !getReferenceConstraints().stream()
-				.filter(r -> r.getReferencedEntity().equals(getParent().getTableName())).findFirst().isPresent()) {
+		if (getParent() != null && !getReferenceConstraints().stream().filter(r -> r.getReferencedEntity().equals(getParent().getTableName())).findFirst().isPresent()) {
+			String referenceConstraintName = getReferenceConstraintName();
 
-			referencedEntities.add(new ReferenceConstraint() {
-				{
-					setReferencedEntity(getParent().getTableName());
-				}
-			});
+			referencedEntities.add(new ReferenceConstraint() {{
+				setReferencedEntity(getParent().getTableName());
+				setReferenceConstraintName(referenceConstraintName);
+			}});
 		}
 
 		referencedEntities.addAll(getReferenceConstraints());
-
+		
 		return referencedEntities;
 	}
 
@@ -287,6 +288,14 @@ class Entity {
 
 	void setModifiedDateOmitted(boolean modifiedDateOmitted) {
 		this.modifiedDateOmitted = modifiedDateOmitted;
+	}
+
+	public String getReferenceConstraintName() {
+		return referenceConstraintName;
+	}
+
+	public void setReferenceConstraintName(String referenceConstraintName) {
+		this.referenceConstraintName = referenceConstraintName;
 	}
 }
 
@@ -340,6 +349,9 @@ class ReferenceConstraint {
 	private boolean containedInParentAsOneToMany;
 	// optional name of foreign key property (if same entity is referenced more than once)
 	private String name;
+	private String referencePropertyName;
+	// Enable configuring a name for reference constraint 
+	private String referenceConstraintName;
 
 	public String getReferenceProperty() {
 		return Utils.coalesce(getName(), getReferencedEntity());
@@ -375,6 +387,22 @@ class ReferenceConstraint {
 
 	public void setContainedInParentAsOneToMany(boolean containedInParentAsOneToMany) {
 		this.containedInParentAsOneToMany = containedInParentAsOneToMany;
+	}
+
+	public String getReferencePropertyName() {
+		return referencePropertyName;
+	}
+
+	public void setReferencePropertyName(String referencePropertyName) {
+		this.referencePropertyName = referencePropertyName;
+	}
+
+	public String getReferenceConstraintName() {
+		return referenceConstraintName;
+	}
+
+	public void setReferenceConstraintName(String referenceConstraintName) {
+		this.referenceConstraintName = referenceConstraintName;
 	}
 }
 

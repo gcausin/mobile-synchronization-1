@@ -53,7 +53,6 @@ classForeignKeySetter:
     
     import java.util.HashMap;
     import java.util.Map;
-    import java.util.function.Consumer;
     import java.util.function.BiConsumer;
     
     import org.springframework.beans.BeansException;
@@ -115,7 +114,7 @@ foreignKeySetterOfClass:
             }
 
 foreignKeySetter:
-                        put("~foreignKey~Fk", (o, pk) -> ((~SimpleClassName~)o).set~ForeignKey~(ForeignKeySetter.this.<~ForeignKey~Repository>getByType(~ForeignKey~Repository.class).findOne(pk)));
+                        put("~referenceProperty~Fk", (o, pk) -> ((~SimpleClassName~)o).set~ReferenceProperty~(ForeignKeySetter.this.<~ForeignKey~Repository>getByType(~ForeignKey~Repository.class).findOne(pk)));
 
 rootEntityBase:
     {
@@ -213,6 +212,8 @@ userDependencyTable:
         "referenceConstraints":[
             {
                 "referencedEntity":"UserDependency",
+                "referencePropertyName":"priorUserDependency",
+                "referenceConstraintName":"Parent of UserDependency",
                 "nullable":"true"
             }
         ],
@@ -306,14 +307,14 @@ entityTemplate:
 
 reference:
         @ManyToOne(cascade = CascadeType.ALL)
-        @JoinColumn(name = "~referenceProperty~Fk", nullable = ~nullable~)
+        @JoinColumn(name = "~referencePropertyFk~", nullable = ~nullable~)
         private ~ReferencedEntity~ ~referenceProperty~;
         
         @JsonInclude
         @Transient
-        private String ~referenceProperty~Fk;
+        private String ~referencePropertyFk~;
     
-        public String get~ReferenceProperty~Fk() {
+        public String get~ReferencePropertyFk~() {
             return ~referenceProperty~ == null ? null : ~referenceProperty~.getPk();
         }
     

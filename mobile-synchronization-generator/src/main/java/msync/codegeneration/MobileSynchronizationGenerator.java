@@ -249,8 +249,14 @@ public class MobileSynchronizationGenerator {
                     .replace("~fullClassName~", entity.getPackageName() + "." + entity.getTableName() + "Repository");
             
             for (ReferenceConstraint referenceConstraint : entity.getAllReferences()) {
+            	String referenceProperty = referenceConstraint.getReferencePropertyName() == null ?
+							    				Utils.firstLetterToLowerCase(referenceConstraint.getReferencedEntity()) :
+							    				referenceConstraint.getReferencePropertyName();
+				String upperReferenceProperty = Utils.firstLetterToUpperCase(referenceProperty);
                 
                 foreignKeySetters += readTemplate("foreignKeySetter:")
+                        .replace("~referenceProperty~", referenceProperty)
+                        .replace("~ReferenceProperty~", upperReferenceProperty)
                         .replace("~foreignKey~", Utils.firstLetterToLowerCase(referenceConstraint.getReferencedEntity()))
                         .replace("~ForeignKey~", referenceConstraint.getReferencedEntity())
                         .replace("~SimpleClassName~", entityName);
@@ -379,14 +385,22 @@ public class MobileSynchronizationGenerator {
         List<ReferenceConstraint> referencedEntities = entity.getAllReferences();
         
         for(ReferenceConstraint referenceConstraint : referencedEntities) {
-            references += readTemplate("reference:")
-                    .replace("~ReferencedEntity~", referenceConstraint.getReferencedEntity())
-                    .replace("~referenceProperty~", Utils.firstLetterToLowerCase(referenceConstraint.getReferenceProperty()))
-                    .replace("~ReferenceProperty~", Utils.firstLetterToUpperCase(referenceConstraint.getReferenceProperty()))
-                    .replace("~referencedEntity~", Utils.firstLetterToLowerCase(referenceConstraint.getReferencedEntity()))
-                    .replace("~nullable~", new Boolean(referenceConstraint.isNullable()).toString());
-            
-            String packageOfEntity = rootEntity.findEntity(referenceConstraint.getReferencedEntity()).getPackageName();
+        	String referenceProperty = referenceConstraint.getReferencePropertyName() == null ?
+						    				Utils.firstLetterToLowerCase(referenceConstraint.getReferenceProperty()) :
+						    				referenceConstraint.getReferencePropertyName();
+        	String upperReferenceProperty = Utils.firstLetterToUpperCase(referenceProperty);
+        	String referencePropertyFk = referenceProperty + "Fk";
+        	String upperReferencePropertyFk = upperReferenceProperty + "Fk";
+        	
+          references += readTemplate("reference:")
+			          .replace("~ReferencedEntity~", referenceConstraint.getReferencedEntity())
+			          .replace("~referenceProperty~", referenceProperty)
+			          .replace("~ReferenceProperty~", upperReferenceProperty)
+			          .replace("~referencePropertyFk~", referencePropertyFk)
+			          .replace("~ReferencePropertyFk~", upperReferencePropertyFk)
+			          .replace("~nullable~", new Boolean(referenceConstraint.isNullable()).toString());
+
+        	String packageOfEntity = rootEntity.findEntity(referenceConstraint.getReferencedEntity()).getPackageName();
             
             if (!packageOfEntity.equals(entity.getPackageName()) &&
                 !referenceConstraint.getReferencedEntity().equals("User")) {
@@ -559,14 +573,32 @@ public class MobileSynchronizationGenerator {
         System.out.println("Generate " + (getConnection() == null ? "" : "and execute ") + "SQL \"" + rootEntity.getSchema() + "\".\"" + entity.getTableName() + "\"");
 
         for(ReferenceConstraint referenceConstraint : referencedEntities) {
+        	String referencingProperty;
+        	String referenceConstraintName;
+        	
+        	if (referenceConstraint.getReferencePropertyName() == null) {
+        		referencingProperty =
+        				readDatabaseTemplate("referencingProperty:")
+    						.replace("~referenceProperty~", Utils.firstLetterToLowerCase(referenceConstraint.getReferenceProperty()));
+        	} else {
+        		referencingProperty = referenceConstraint.getReferencePropertyName() + "Fk\n"; 
+        	}
+
+        	if (referenceConstraint.getReferenceConstraintName() == null) {
+        		referenceConstraintName =
+        				readDatabaseTemplate("referenceConstraintName:")
+							.replace("~ReferenceProperty~", Utils.firstLetterToUpperCase(referenceConstraint.getReferenceProperty()))
+							.replace("~entity~", entity.getTableName());
+        	} else {
+        		referenceConstraintName = enclose(referenceConstraint.getReferenceConstraintName(), "\"") + "\n"; 
+        	}
+
             references += readDatabaseTemplate("referencingAttribute:")
                     .replace("~referencedEntity~", referenceConstraint.getReferencedEntity())
-                    .replace("~referenceProperty~", Utils.firstLetterToLowerCase(referenceConstraint.getReferenceProperty()))
-                    .replace("~ReferenceProperty~", Utils.firstLetterToUpperCase(referenceConstraint.getReferenceProperty()))
-                    .replace("~attributeType~", Utils.firstLetterToLowerCase(referenceConstraint.getReferencedEntity()))
+                    .replace("~referencingProperty~", referencingProperty)
+                    .replace("~referenceConstraintName~", referenceConstraintName)
                     .replace("~schema~", rootEntity.getSchema())
-                    .replace("~isNullable~", referenceConstraint.isNullable() ? "" : System.lineSeparator() + "        not null")
-                    .replace("~entity~", entity.getTableName());
+                    .replace("~isNullable~", referenceConstraint.isNullable() ? "" : System.lineSeparator() + "        not null");
         }
         
         for (Property property : entity.getProperties()) {
@@ -624,7 +656,14 @@ public class MobileSynchronizationGenerator {
         return out;
     }
 
-    private StringBuffer generateCreateCommonViewsStatements(RootEntity rootEntity) throws SQLException {
+    private String enclose(String term, String encloseWith) {
+    	if (term == null) {
+    		return null;
+    	}
+		return encloseWith + term + encloseWith;
+	}
+
+	private StringBuffer generateCreateCommonViewsStatements(RootEntity rootEntity) throws SQLException {
         StringBuffer out = new StringBuffer();
         String createView = readDatabaseTemplate("createAccountsView:")
                 .replace("~schema~", rootEntity.getSchema()); 
