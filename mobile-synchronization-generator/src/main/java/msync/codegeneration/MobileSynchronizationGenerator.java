@@ -90,7 +90,7 @@ public class MobileSynchronizationGenerator {
         out.append(generateCreateTableStatements(rootEntity, roleTable));
         out.append(generateCreateTableStatements(rootEntity, userRoleTable));
         out.append(generateCreateTableStatements(rootEntity, deletedRecord));
-        
+        out.append(generateCreateCommonViewsStatements(rootEntity));
         out.append(createStoredProcedures(rootEntity));
         
         String copyFromSchema = getProperty("copyFromSchema");
@@ -118,9 +118,12 @@ public class MobileSynchronizationGenerator {
         if (createTablePath != null) {
             writeToFile(createTablePath, "SetupDatabase.sql", out.toString());
         }
+        
+        System.out.println(readDatabaseTemplate("setSearchPath:").replace("~schema~", rootEntity.getSchema()));
+
     }
 
-    private void generateCsharpInterfaces() throws IOException {
+	private void generateCsharpInterfaces() throws IOException {
         final String interfaceDefinitions = Utils.readTextFileFromClasspath("base-interfaces.json");
         final Interface[] interfaces = interfaceDefinitions == null ?
         									new Interface[0] : 
@@ -572,7 +575,8 @@ public class MobileSynchronizationGenerator {
                     .replace("~isNullable~", property.isNullable() ? "" : System.lineSeparator() + "        not null")
                     .replace("~attributeName~", property.getName());
         }
-        
+
+        StringBuffer out = new StringBuffer();
         String createTable = readDatabaseTemplate("createTableTemplate:")
                 .replace("~schema~", rootEntity.getSchema())
                 .replace("~entity~", entity.getTableName())
@@ -589,11 +593,16 @@ public class MobileSynchronizationGenerator {
                                                     .getProperties()
                                                     .stream()
                                                     .reduce((a, b) -> a + ", " + b)
-                                                    .get())); 
-        
-        StringBuffer out = new StringBuffer();
+                                                    .get()));
+
+        String viewName = ("User".equals(entity.getTableName()) ? "app" : "") + entity.getTableName();
+        String createView = readDatabaseTemplate("createViewTemplate:")
+                .replace("~schema~", rootEntity.getSchema())
+                .replace("~view~", viewName)
+                .replace("~entity~", entity.getTableName()); 
         
         out.append(executeStatement(createTable));
+        out.append(executeStatement(createView));
 
         if (!entity.isExludedFromUserDependency()) {
             out.append(executeStatement((entity.getParent() == null ?
@@ -614,6 +623,16 @@ public class MobileSynchronizationGenerator {
         
         return out;
     }
+
+    private StringBuffer generateCreateCommonViewsStatements(RootEntity rootEntity) throws SQLException {
+        StringBuffer out = new StringBuffer();
+        String createView = readDatabaseTemplate("createAccountsView:")
+                .replace("~schema~", rootEntity.getSchema()); 
+        
+        out.append(executeStatement(createView));
+        
+        return out;
+	}
 
     private StringBuffer executeStatement(String statement) throws SQLException {
         Statement stmt = getConnection() == null ? null : getConnection().createStatement();

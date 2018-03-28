@@ -25,6 +25,26 @@ createTableTemplate:
             default uuid_generate_v4(),
     ~modifiedDate~~referencingAttributes~~tableAttributes~~uniqueTableConstraint~)
 
+createViewTemplate:
+    create view "~schema~".~view~ as select * from "~schema~"."~entity~"
+
+createAccountsView:
+    create or replace view "~schema~".accounts as
+    select
+        u.pk,
+        cast(u.name as text) as name,
+        a.password,
+        cast(r.name as text) as role
+    from
+        "~schema~".appUser u
+        left join "~schema~".Account a on a.userFk = u.pk
+        left join "~schema~".UserRole ur on ur.userFk = u.pk
+        left join "~schema~".Role r on ur.roleFk = r.pk
+
+setSearchPath:
+    -- For convenient access of view please execute:
+    set search_path to "~schema~", public;
+
 modifiedDate:
         modifiedDate
             timestamp
@@ -120,24 +140,39 @@ createQueryOfUserDependency:
         ' ') 
     from
         (
-            WITH RECURSIVE tree AS (
-               SELECT pk, userDependencyFk, case when tableName = 'User' then 'u' else tablename end, 1 AS level
-               FROM   "~schema~"."UserDependency"
-               WHERE  tableName = '~entity~'
-               UNION  ALL
-               SELECT t.pk, t.userDependencyFk, t.tableName, c.level + 1
-               FROM   tree      c
-               JOIN   "~schema~"."UserDependency" t ON t.pk = c.userDependencyFk)
-            SELECT
+            with recursive tree as (
+                select
+                    pk,
+                    userDependencyFk,
+                    case when tableName = 'User' then 'u' else tablename end,
+                    1 AS level
+                from
+                    "~schema~"."UserDependency"
+                where
+                    tableName = '~entity~'
+                union all
+                select
+                    t.pk,
+                    t.userDependencyFk,
+                    t.tableName,
+                    c.level + 1
+                from
+                    tree c
+                join
+                    "~schema~"."UserDependency" t
+                on
+                    t.pk = c.userDependencyFk
+            )
+            select
                 level,
                 tableName,
                 lead(tableName) over (ORDER BY level),
                 lag(tableName) over (ORDER BY level),
                 count(*) over (partition by 'x')
-            FROM
+            from
                 tree
-            ORDER
-                BY level desc
+            order by
+                level desc
         ) a
 
 createFunctionNotifyDeletedRecord:
